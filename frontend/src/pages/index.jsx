@@ -50,18 +50,17 @@ const styles = theme => ({
 
 // Index component
 class Index extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
-      noteTable: [], // to store the table rows from smart contract
-
       // this is where you define the state variable
       personinfo: [ {}],
       amountpaid: [{}],
-      propertyinfo: [{}]
+      propertyinfo: [{}],
+      properties: {}
 
     };
+
     this.handleFormEvent = this.handleFormEvent.bind(this);
   }
 
@@ -112,11 +111,6 @@ class Index extends Component {
         blocksBehind: 3,
         expireSeconds: 30,
       });
-
-      console.log(result);
-      this.getProfiles();
-      this.getProperties();
-      this.getStakersByProperty(0); // Need property ID
     } catch (e) {
       console.log('Caught exception: ' + e);
       if (e instanceof RpcError) {
@@ -137,8 +131,7 @@ class Index extends Component {
     }).then(result => {
       //this is where you set the state variable to have the object
       this.state.personinfo = result.rows;
-      console.log(result.rows);
-      this.setState({state: this.state});
+      this.setState({ state: this.state });
     });
   }
 
@@ -150,16 +143,15 @@ class Index extends Component {
       "scope": "notechainacc",  // scope of the table
       "table": "properties",    // name of the table as specified by the contract abi
       "limit": 100,
-    }).then(result =>
-      {
+    }).then(result => {
       this.state.propertyinfo = result.rows;
-      console.log(result.rows);
-      this.setState({state: this.state });
-    //
-
-});
+      this.setState({state: this.state});
+      if(this.state.propertyinfo.length != result.rows.length) {
+        this.refinePropertyObjects();
+      }
+    });
 }
-// address, city, offer, photo_url, stateÍ
+// address, city, offer, photo_url, state
 
   getStakersByProperty(propertyId) {
     const rpc = new JsonRpc(endpoint);
@@ -169,86 +161,210 @@ class Index extends Component {
       "scope": propertyId,  // scope of the table
       "table": "stakers",    // name of the table as specified by the contract abi
       "limit": 100,
-    }).then(result => { this.state.amountpaid = result.rows;
+    }).then(result => {
+      this.state.amountpaid = result.rows;
       this.setState({state: this.state});
-      console.log(result.rows);
-
-})
+    })
   }
-// called everytime you reffresh the paeg chicago
-  componentDidMount() {
+
+
+  loadStakersIntoProperty(propertyId) {
+    const rpc = new JsonRpc(endpoint);
+    rpc.get_table_rows({
+      "json": true,
+      "code": "notechainacc",   // contract who owns the table
+      "scope": propertyId,  // scope of the table
+      "table": "stakers",    // name of the table as specified by the contract abi
+      "limit": 100,
+    }).then(result => {
+      if(!this.state.properties.hasOwnProperty(propertyId)) {
+        this.state.properties[propertyId] = {};
+      }
+      //console.log("BEFORE ADDING STAKERS for propdId: " + propertyId)
+      //console.log("this.state.properties is " + JSON.stringify(this.state.properties[propertyId]))
+      //console.log("??? STAKERS ARE " + JSON.stringify(result.rows))
+
+      if(!this.state.properties[propertyId].hasOwnProperty('propertyinfo')) {
+        this.state.properties[propertyId].propertyinfo = {};
+      }
+      if(!this.state.properties[propertyId].hasOwnProperty('stakers')) {
+        this.state.properties[propertyId].stakers = [];
+      }
+      if(result.rows.length > 0) {
+        this.state.properties[propertyId].stakers = result.rows
+      }
+      //console.log(JSON.stringify(this.state.properties))
+      this.setState({state: this.state});
+    });
+  }
+
+  refinePropertyObjects() {
     this.getProfiles();
     this.getProperties();
-    this.getStakersByProperty(0); // Need property ID
+    this.state.propertyinfo.map((row, i) => {
+      if(row.prim_key == undefined) {
+        return;
+      }
+      this.getStakersByProperty(row.prim_key);
+      if(!this.state.properties.hasOwnProperty(row.prim_key)) {
+        this.state.properties[row.prim_key] = {};
+      }
+      if(!this.state.properties[row.prim_key].hasOwnProperty('propertyinfo')) {
+        this.state.properties[row.prim_key].propertyinfo = [];
+      }
+      console.log(">>>> this.state.properties " + JSON.stringify(this.state.propertyinfo))
+      console.log(">>>> adding to this.state.properties " + row.prim_key)
+
+
+      this.state.properties[row.prim_key].propertyinfo = row
+      this.setState({state: this.state});
+      this.loadStakersIntoProperty(row.prim_key);
+    });
+  }
+
+// called everytime you reffresh the paeg chicago
+  componentDidMount() {
+    this.refinePropertyObjects();
+    setInterval(() => {
+      this.refinePropertyObjects()
+    }, 2000);
+  }
+
+  componentDidUpdate(prevProps) {
+
   }
 
   render() {
     // add to this
-    const { noteTable, personinfo, amountpaid, propertyinfo } = this.state;
-    const { classes } = this.props;
+    const { personinfo, amountpaid, propertyinfo, properties } = this.state;
+    const { classes, updated } = this.props;
 
-    // generate each note as a card
-    const generateCard = (key, timestamp, user, note) => (
-      <Card className={classes.card} key={key}>
-        <CardContent>
-          <Typography variant="headline" component="h2">
-            {user}
-          </Typography>
-          <Typography style={{fontSize:12}} color="textSecondary" gutterBottom>
-            {new Date(timestamp*1000).toString()}
-          </Typography>
-          <Typography component="pre">
-            {note}
-          </Typography>
-        </CardContent>
-      </Card>
-    );
-    let noteCards = noteTable.map((row, i) =>
-      generateCard(i, row.timestamp, row.user, row.note));
-
-// where you gegnerat the html
       const generateInfoCard = (key, fullname, photo_url) => (
-        <div>{fullname} <br/> {photo_url}</div>
-
+        <Card className={classes.card} key={key}>
+          <CardContent>
+            <Typography variant="headline" component="h2">
+              {fullname}
+            </Typography>
+            <Typography component="pre">
+              {photo_url}
+            </Typography>
+          </CardContent>
+        </Card>
       );
 
-      const propertyInfoCard = (key, address, city, offer, photo_url, state) => (
-        <div>{address}
-        <br/> {city}
-        <br/> {state}
-        <br/> {offer}
-        <br/> {photo_url}
-        <br/>
-        </div>
+      const propertiesInfoCard = (key, property_info) => {
+        let stakers = (<span/>);
+        if(property_info.stakers != undefined) {
+          stakers = property_info.stakers.map((element) => {
+            return (
+              <Card className={classes.card} key={key}>
+                <CardContent>
+                  <Typography variant="headline" component="h2">
+                    {element.user}
+                  </Typography>
+                  <Typography component="pre">
+                    {element.quantity}
+                  </Typography>
+                </CardContent>
+              </Card>
+            )
+          })
+        }
+        return (
+          <Card className={classes.card} key={key}>
+            <CardContent>
+              <Typography variant="headline" component="h2">
+                Address: {property_info.propertyinfo.address}
+              </Typography>
+              <Typography component="pre">
+                Photo: {property_info.propertyinfo.photo_url}
+              </Typography>
+              <Typography component="pre">
+                City: {property_info.propertyinfo.city}
+              </Typography>
+              <Typography component="pre">
+                State: {property_info.propertyinfo.state}
+              </Typography>
+              <Typography component="pre">
+                Price: {property_info.propertyinfo.offer}
+              </Typography>
+              <Typography component="pre">
+                ID: {property_info.propertyinfo.property_id}
+              </Typography>
+              <br/>
+              Investors:
+              <Typography component="pre">
+                {stakers}
+              </Typography>
+            </CardContent>
+          </Card>
+        );
+      }
 
-
-
-      );
+      const propertyInfoCard = (key, address, city, offer, photo_url, state, property_id) => {
+        return (
+          <Card className={classes.card} key={key}>
+            <CardContent>
+              <Typography variant="headline" component="h2">
+                {address}
+              </Typography>
+              <Typography component="pre">
+                {photo_url}
+              </Typography>
+              <Typography component="pre">
+                {city}
+              </Typography>
+              <Typography component="pre">
+                {state}
+              </Typography>
+              <Typography component="pre">
+                {offer}
+              </Typography>
+              <Typography component="pre">
+                {property_id}
+              </Typography>
+            </CardContent>
+          </Card>
+        );
+      }
       // address, city, offer, photo_url, stateÍ
 
-      const generateAmountPaidCard = (key, amountPaid) => (
-        <div>{amountPaid}</div>
-
+      const generateAmountPaidCard = (key, user, amountPaid) => (
+        <Card className={classes.card} key={key}>
+          <CardContent>
+            <Typography variant="headline" component="h2">
+              {user}
+            </Typography>
+            <Typography component="pre">
+              {amountPaid}
+            </Typography>
+          </CardContent>
+        </Card>
       );
 
 
-      console.log("propertyingo", personinfo);
       let personinfox = personinfo.map((row, i) => {
-        console.log("Row:", row);
         return generateInfoCard(i, row.fullname, row.photo_url);
-
-
       });
 
       let amountpaidforhouse = amountpaid.map((row, i) => {
-        return generateAmountPaidCard(i, row.quantity);
+        return generateAmountPaidCard(i, row.user, row.quantity);
       });
 
       let propertyinfox = propertyinfo.map((row, i) => {
-        console.log("Row:", row);
-        return propertyInfoCard(i, row.address, row.city, row.state, row.offer, row.photo_url);
+        return propertyInfoCard(i, row.address, row.city, row.state, row.offer, row.photo_url, row.prim_key);
+      });
 
+      let new_props = [];
+      Object.keys(properties).forEach(function(key) {
+          if(properties[key].propertyinfo == undefined) {
+            return {}
+          }
+          new_props.push(properties[key]);
+      });
 
+      let newpropcards = new_props.map((row, i) => {
+        return propertiesInfoCard(Math.random(), row)
       });
 
 
@@ -257,15 +373,14 @@ class Index extends Component {
         <AppBar position="static" color="default">
           <Toolbar>
             <Typography variant="title" color="inherit">
-              Note Chain
+              HomeStake
             </Typography>
           </Toolbar>
         </AppBar>
-        {noteCards}
-        // where html is put in
-        {personinfox}
-        {amountpaidforhouse}
-        {propertyinfox}
+
+
+        {newpropcards}
+
         <Paper className={classes.paper}>
           <form onSubmit={this.handleFormEvent}>
             <TextField
@@ -283,12 +398,18 @@ class Index extends Component {
               fullWidth
             />
             <TextField
-              name="note"
+              name="propertyId"
               autoComplete="off"
-              label="Note (Optional)"
+              label="Property ID"
+              margin="normal"
+              fullWidth
+            />
+            <TextField
+              name="contribution"
+              autoComplete="off"
+              label="Contribution (EOS)"
               margin="normal"
               multiline
-              rows="10"
               fullWidth
             />
             <Button
