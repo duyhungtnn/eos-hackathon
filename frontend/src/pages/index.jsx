@@ -291,6 +291,9 @@ class Index extends Component {
               <Typography component="pre">
                 ID: {property_info.propertyinfo.prim_key}
               </Typography>
+              <Typography component="pre">
+                Return: 4%
+              </Typography>
               <br/>
               Investors:
               <Typography component="pre">
