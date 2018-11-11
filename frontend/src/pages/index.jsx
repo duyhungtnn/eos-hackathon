@@ -289,7 +289,7 @@ class Index extends Component {
                 Price: {property_info.propertyinfo.offer}
               </Typography>
               <Typography component="pre">
-                ID: {property_info.propertyinfo.property_id}
+                ID: {property_info.propertyinfo.prim_key}
               </Typography>
               <br/>
               Investors:

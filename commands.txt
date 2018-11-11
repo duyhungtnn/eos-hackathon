@@ -4,15 +4,18 @@ docker exec -it eosio_notechain_container bash
 
 5K7mtrinTFrVTduSxizUc5hjXJEtTjVTsqSHeBHes1Viep86FP5
 
+
+
+
 eosio-cpp -abigen notechain/notechain.cpp -o notechain/notechain.wasm --contract notechain
 
 ./scripts/deploy_contract.sh notechain notechainacc notechainwal $(cat notechain_wallet_password.txt)
 
-cleos push action notechainacc contribute '["useraaaaaaaa", 0, "2.0000 EOS"]' -p useraaaaaaaa@active
+cleos push action notechainacc contribute '["useraaaaaaaa", 0, "5.0000 EOS"]' -p useraaaaaaaa@active
 cleos get table notechainacc 0 stakers
 
 cleos push action notechainacc setprofile '["useraaaaaaaa", "John Smith", "www.myprofile.com/me"]' -p useraaaaaaaa@active
 cleos get table notechainacc notechainacc profiles
 
 cleos push action notechainacc setproperty '["useraaaaaaaa", "1 Great Prod Drive", "Tempe", "AZ", "https://www.ryanhomes.com/rh-community-gallery-NewAspectRatio/a5e1e7f9-6397-427f-a86c-4db46d1e9b4e/db/a5e1e7f9-6397-427f-a86c-4db46d1e9b4e.jpg", "25.0000 EOS"]' -p useraaaaaaaa@active
-cleos get table notechainacc notechainacc properties
+cleos push action notechainacc setproperty '["useraaaaaaaa", "4555 Main Street", "Tempe", "AZ", "https://static.squarespace.com/static/54ac6564e4b0f1bacf9bc333/54addc47e4b0e896d1df20a2/54addc53e4b0e896d1df22f0/1276783726000/capitol-hill-front.jpg", "300.0000 EOS"]' -p useraaaaaaaa@active
