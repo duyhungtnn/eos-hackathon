@@ -23,3 +23,13 @@ if [ ! -z $3 ]; then cleos wallet unlock -n $3 --password $4 || true; fi
 
 # set (deploy) compiled contract to blockchain
 cleos set contract $2 "$COMPILEDCONTRACTSPATH/$1/" --permission $2
+
+#sleep 2
+
+cleos wallet import -n notechainwal --private-key 5K7mtrinTFrVTduSxizUc5hjXJEtTjVTsqSHeBHes1Viep86FP5
+#cleos push action notechainacc setprofile '["useraaaaaaaa", "John Smith", "www.myprofile.com/me"]' -p useraaaaaaaa@active
+#cleos push action notechainacc setproperty '["useraaaaaaaa", "1234 Some Street #3", "Tempe", "AZ", "www.myprofile.com/me", "100.0000 EOS"]' -p useraaaaaaaa@active
+#cleos push action notechainacc contribute '["useraaaaaaaa", 0, "25.0000 EOS"]' -p useraaaaaaaa@active
+
+cleos wallet import -n notechainwal --private-key 5KLqT1UFxVnKRWkjvhFur4sECrPhciuUqsYRihc1p9rxhXQMZBg
+#cleos push action notechainacc contribute '["useraaaaaaab", 0, "25.0000 EOS"]' -p useraaaaaaab@active

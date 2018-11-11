@@ -38,6 +38,7 @@ CONTRACT notechain : public eosio::contract {
       std::string city;
       std::string state;
       std::string photo_url;
+      asset offer;
       uint8_t fulfilled;
       uint64_t timestamp;
 
@@ -86,7 +87,6 @@ CONTRACT notechain : public eosio::contract {
       auto iterator = profile_index.find(user.value);
       bool exists = iterator != profile_index.end();
 
-      print("Heloo ");
       if (exists) {
         auto &entry = profile_index.get(user.value);
         _profile.modify( entry, _self, [&]( auto& modified_profile ) {
@@ -119,21 +119,22 @@ CONTRACT notechain : public eosio::contract {
     }
 
     ACTION setproperty( name user, std::string address, std::string city,
-          std::string state, std::string photo_url) {
+          std::string state, std::string photo_url, asset offer) {
       // to sign the action with the given account
       require_auth( user );
 
       properties _properties(_self, _self.value); // table scoped by contract
 
-      _properties.emplace( _self, [&]( auto& new_profile ) {
-        new_profile.user = user;
-        new_profile.address = address;
-        new_profile.city = city;
-        new_profile.state = state;
-        new_profile.photo_url = photo_url;
-        new_profile.fulfilled = 0;
-        new_profile.prim_key = _properties.available_primary_key();
-        new_profile.timestamp = now();
+      _properties.emplace( _self, [&]( auto& new_property ) {
+        new_property.user = user;
+        new_property.address = address;
+        new_property.city = city;
+        new_property.state = state;
+        new_property.photo_url = photo_url;
+        new_property.fulfilled = 0;
+        new_property.offer = offer;
+        new_property.prim_key = _properties.available_primary_key();
+        new_property.timestamp = now();
       });
 
     }
@@ -145,9 +146,21 @@ CONTRACT notechain : public eosio::contract {
       // create new / update note depends whether the user account exist or not
       stakers _stakers(_self, property_id); // table scoped by property_id
 
+
+      asset total = asset(0, symbol("EOS", 4));
+      for(auto itr = _stakers.begin(); itr != _stakers.end(); itr++) {
+        total += itr->quantity;
+      }
+
+      properties _properties(_self, _self.value);
+      auto &entry = _properties.get(property_id);
+      eosio_assert( (total + quantity) <= entry.offer, "Cannot contribute more than goal." );
+
+
       auto staker_index = _stakers.get_index<name("getbyuser")>();
       auto iterator = staker_index.find(user.value);
       bool exists = iterator != staker_index.end();
+
 
       if (exists) {
         auto &entry = staker_index.get(user.value);
