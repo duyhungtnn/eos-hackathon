@@ -1,0 +1,20 @@
+docker stop eosio_notechain_container
+
+docker exec -it eosio_notechain_container bash
+
+5K7mtrinTFrVTduSxizUc5hjXJEtTjVTsqSHeBHes1Viep86FP5
+
+eosio-cpp -abigen notechain/notechain.cpp -o notechain/notechain.wasm --contract notechain
+
+./scripts/deploy_contract.sh notechain notechainacc notechainwal $(cat notechain_wallet_password.txt)
+
+cleos push action notechainacc contribute '["useraaaaaaaa", 0, "2.0000 EOS"]' -p useraaaaaaaa@active
+cleos get table notechainacc 0 stakers
+
+
+cleos push action notechainacc setprofile '["useraaaaaaaa", "John Smith", "www.myprofile.com/me"]' -p useraaaaaaaa@active
+cleos get table notechainacc notechainacc profiles
+
+
+cleos push action notechainacc setproperty '["useraaaaaaaa", "1234 Some Street #3", "Tempe", "AZ", "www.myprofile.com/me", "25.0000 EOS"]' -p useraaaaaaaa@active
+cleos get table notechainacc notechainacc properties
