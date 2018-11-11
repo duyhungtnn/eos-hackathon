@@ -11,10 +11,8 @@ eosio-cpp -abigen notechain/notechain.cpp -o notechain/notechain.wasm --contract
 cleos push action notechainacc contribute '["useraaaaaaaa", 0, "2.0000 EOS"]' -p useraaaaaaaa@active
 cleos get table notechainacc 0 stakers
 
-
 cleos push action notechainacc setprofile '["useraaaaaaaa", "John Smith", "www.myprofile.com/me"]' -p useraaaaaaaa@active
 cleos get table notechainacc notechainacc profiles
 
-
-cleos push action notechainacc setproperty '["useraaaaaaaa", "1234 Some Street #3", "Tempe", "AZ", "www.myprofile.com/me", "25.0000 EOS"]' -p useraaaaaaaa@active
+cleos push action notechainacc setproperty '["useraaaaaaaa", "1 Great Prod Drive", "Tempe", "AZ", "https://www.ryanhomes.com/rh-community-gallery-NewAspectRatio/a5e1e7f9-6397-427f-a86c-4db46d1e9b4e/db/a5e1e7f9-6397-427f-a86c-4db46d1e9b4e.jpg", "25.0000 EOS"]' -p useraaaaaaaa@active
 cleos get table notechainacc notechainacc properties

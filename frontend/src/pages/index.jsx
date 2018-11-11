@@ -277,7 +277,7 @@ class Index extends Component {
                 Address: {property_info.propertyinfo.address}
               </Typography>
               <Typography component="pre">
-                Photo: {property_info.propertyinfo.photo_url}
+                <img src={property_info.propertyinfo.photo_url} height="300"/>
               </Typography>
               <Typography component="pre">
                 City: {property_info.propertyinfo.city}
