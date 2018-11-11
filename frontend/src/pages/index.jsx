@@ -108,7 +108,9 @@ class Index extends Component {
       });
 
       console.log(result);
-      this.getTable();
+      this.getProfiles();
+      this.getProperties();
+      this.getStakersByProperty(0); // Need property ID
     } catch (e) {
       console.log('Caught exception: ' + e);
       if (e instanceof RpcError) {
@@ -117,21 +119,43 @@ class Index extends Component {
     }
   }
 
-  // gets table data from the blockchain
-  // and saves it into the component state: "noteTable"
-  getTable() {
+  getProfiles() {
     const rpc = new JsonRpc(endpoint);
     rpc.get_table_rows({
       "json": true,
       "code": "notechainacc",   // contract who owns the table
       "scope": "notechainacc",  // scope of the table
-      "table": "notestruct",    // name of the table as specified by the contract abi
+      "table": "profiles",    // name of the table as specified by the contract abi
       "limit": 100,
-    }).then(result => this.setState({ noteTable: result.rows }));
+    }).then(result => console.log(result.rows));
+  }
+
+  getProperties() {
+    const rpc = new JsonRpc(endpoint);
+    rpc.get_table_rows({
+      "json": true,
+      "code": "notechainacc",   // contract who owns the table
+      "scope": "notechainacc",  // scope of the table
+      "table": "properties",    // name of the table as specified by the contract abi
+      "limit": 100,
+    }).then(result => console.log(result.rows));
+  }
+
+  getStakersByProperty(propertyId) {
+    const rpc = new JsonRpc(endpoint);
+    rpc.get_table_rows({
+      "json": true,
+      "code": "notechainacc",   // contract who owns the table
+      "scope": propertyId,  // scope of the table
+      "table": "stakers",    // name of the table as specified by the contract abi
+      "limit": 100,
+    }).then(result => console.log(result.rows));
   }
 
   componentDidMount() {
-    this.getTable();
+    this.getProfiles();
+    this.getProperties();
+    this.getStakersByProperty(0); // Need property ID
   }
 
   render() {

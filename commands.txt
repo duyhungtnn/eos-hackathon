@@ -6,8 +6,8 @@ docker exec -it eosio_notechain_container bash
 
 eosio-cpp -abigen notechain/notechain.cpp -o notechain/notechain.wasm --contract notechain
 
-cleos push action notechainacc contribute '["useraaaaaaaa", 1, "1.0000 EOS"]' -p useraaaaaaaa@active
-cleos get table notechainacc 1 stakers
+cleos push action notechainacc contribute '["useraaaaaaaa", 0, "2.0000 EOS"]' -p useraaaaaaaa@active
+cleos get table notechainacc 0 stakers
 
 
 cleos push action notechainacc setprofile '["useraaaaaaaa", "John Smith", "www.myprofile.com/me"]' -p useraaaaaaaa@active
